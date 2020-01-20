@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name : drone-server
+  labels:
+    app: drone-server
+spec:
+  containers:
+    - name: drone-server
+      image: 
+      env:
+        - name: DRONE_OPEN
+          value: "true"
+        - name: DRONE_GOGS
+          value: "true"
+        - name: DRONE_GOGS_URL
+          value: http://gogs-srvc
+        - name: DRONE_DEBUG
+          value: "true"
+        - name: DRONE_SECRET
+          value: 
+      volumeMounts:
+        - name: drone-server-sqlite-db
+          mountPath: /var/lib/drone
+        - name: dind-socket
+          mountPath: /var/run/docker.sock
+        - name: podinfo
+          mountPath: /meta
+          readOnly: false
+      ports:
+        - containerPort: 8000
+          protocol: TCP
+    - name: drone-agent-01
+      command:
+        - "/drone"
+        - "agent"
+      image: drone/drone:0.7
+      env:
+        - name: DRONE_SERVER
+          value: ws://localhost:8000/ws/broker
+        - name: DRONE_DEBUG
+          value: "true"
+        - name: DRONE_SECRET
+          value: 
+        - name: DOCKER_API_VERSION
+          value: "1.23"
+      volumeMounts:
+        - name: dind-socket
+          mountPath: /var/run/docker.sock
+    - name: drone-agent-02
+      command:
+        - "/drone"
+        - "agent"
+      image: drone/drone:0.7
+      env:
+        - name: DRONE_SERVER
+          value: ws://localhost:8000/ws/broker
+        - name: DRONE_DEBUG
+          value: "true"
+        - name: DRONE_SECRET
+          value: 
+        - name: DOCKER_API_VERSION
+          value: "1.23"
+      volumeMounts:
+        - name: dind-socket
+          mountPath: /var/run/docker.sock
+    - name: drone-agent-03
+      command:
+        - "/drone"
+        - "agent"
+      image: drone/drone:0.7
+      env:
+        - name: DRONE_SERVER
+          value: ws://localhost:8000/ws/broker
+        - name: DRONE_DEBUG
+          value: "true"
+        - name: DRONE_SECRET
+          value: 
+        - name: DOCKER_API_VERSION
+          value: "1.23"
+      volumeMounts:
+        - name: dind-socket
+          mountPath: /var/run/docker.sock
+  volumes:
+    - name: dind-socket
+      hostPath:
+        path: /var/run/docker.sock
+    - name: drone-server-sqlite-db
+      emptyDir: {}
+    - name: podinfo
+      downwardAPI:
+        items:
+          - path: "labels.properties"
+            fieldRef:
+              fieldPath: metadata.labels

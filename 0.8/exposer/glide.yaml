@@ -1,0 +1,8 @@
+package: github.com/xumak-grid/drone/0.8/exposer
+import:
+- package: github.com/spf13/viper
+  version: v1.0.0
+- package: github.com/xumak-grid/go-grid
+  subpackages:
+  - pkg/client
+  - pkg/service-discovery

@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name : drone-server
+  labels:
+    app: drone-server
+spec:
+  containers:
+    - name: drone-server
+      image: 
+      env:
+        - name: DRONE_OPEN
+          value: "true"
+        - name: DRONE_GOGS
+          value: "true"
+        - name: DRONE_GOGS_URL
+          value: http://gogs-srvc
+        - name: DRONE_DEBUG
+          value: "true"
+        - name: DRONE_SECRET
+          value: 4GqUsIgqv2qv78Nl82I8mi39r4ga2606
+        - name: DRONE_GLOBAL_SECRETS
+          value: /etc/global-secrets.yml
+      volumeMounts:
+        - name: drone-server-sqlite-db
+          mountPath: /var/lib/drone
+        - name: dind-socket
+          mountPath: /var/run/docker.sock
+      ports:
+        - containerPort: 8000
+          protocol: TCP
+    - name: drone-agent
+      command:
+        - "/drone"
+        - "agent"
+      image: drone/drone:0.7
+      env:
+        - name: DRONE_SERVER
+          value: ws://localhost:8000/ws/broker
+        - name: DRONE_DEBUG
+          value: "true"
+        - name: DRONE_SECRET
+          value: 4GqUsIgqv2qv78Nl82I8mi39r4ga2606
+        - name: DOCKER_API_VERSION
+          value: "1.23"
+      volumeMounts:
+        - name: dind-socket
+          mountPath: /var/run/docker.sock
+  volumes:
+    - name: dind-socket
+      hostPath:
+        path: /var/run/docker.sock
+    - name: drone-server-sqlite-db
+      emptyDir: {}
+  imagePullSecrets:
+    - name: regsecret
